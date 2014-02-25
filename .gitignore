@@ -1,3 +1,7 @@
 /.tox
 /html
+*.png
+*.svg
+*.pdf
 *.swp
+*.*~

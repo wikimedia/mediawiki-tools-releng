@@ -1,0 +1,170 @@
+blockdiag {
+    // Set node metrix
+    // node_width = 200;  // default value is 128
+    node_height = 70;  // default value is 40
+
+    // set default shape
+    default_shape = roundedbox;  // default value is 'box'
+
+
+    // Product stages
+    strategic_planning [label = "Strategic planning"];
+    sprint_prio [label = "Sprint prioritization"];
+    design_mockup [label = "Design mockup"];
+    build [label = "Build"];
+    goto_dev [label = "Go to dev cycle"];
+
+    // Product flow
+    strategic_planning -> sprint_prio
+    sprint_prio -> design_mockup
+    design_mockup -> build
+    build -> goto_dev
+
+    group product_group {
+        fontsize = 16
+        label = "WMF Product";
+        strategic_planning; sprint_prio; design_mockup; build; goto_dev;
+    }
+
+    // Security stages
+    sec_bug_aware [label = "Made aware of\nsecurity issue\n(via email security@\nor otherwise)"];
+    sec_bug_report [label = "Report Security\n(private) bug in BZ"];
+    sec_dev [label = "Local development/\ntesting only"];
+    sec_patch_in_BZ [label = "Attach patch to\nsecurity bug in BZ\n(one per live wmfXX\nand supported release)"];
+    sec_patch_review [label = "Security team reviews\nand tests the patch"];
+    sec_coord_deploy [label = "Coordinate\nsecurity deploy"];
+    sec_deploy [label = "Deploy security patches\n(all live wmfXX versions)"];
+    sec_get_cve [label = "Request CVEs"];
+    sec_coord_release [label = "Coordinate\nsecurity release"];
+    sec_release [label = "Do security release"];
+    sec_merge_master [label = "Merge security patches into master"];
+
+    // Security flow
+    sec_bug_aware -> sec_bug_report
+    sec_bug_report -> sec_dev
+    sec_dev -> sec_patch_in_BZ
+    sec_patch_in_BZ -> sec_patch_review
+    sec_patch_review -> sec_coord_deploy
+    sec_coord_deploy -> sec_deploy
+    sec_deploy -> sec_get_cve
+    sec_get_cve -> sec_coord_release
+    sec_coord_release -> sec_release
+    sec_release -> sec_merge_master
+
+    group security_group {
+        fontsize = 16
+        label = "Security Bug and Dev"
+        color = "pink"
+        sec_bug_aware; sec_bug_report; sec_dev; sec_patch_in_BZ; sec_patch_review; sec_coord_deploy; sec_deploy; sec_get_cve; sec_coord_release; sec_release; sec_merge_master;
+    }
+
+    // Bug stages
+    report_bug [label = "Report bug"];
+    bug_reported [label = "Bug reported"];
+    bug_languish [label = "Languish", color = "red"];
+    bug_reviewed [label = "Reviewed/\nprioritized"];
+    bug_assigned [label = "BZ Status:\nAssigned\n(Optional)"];
+    bug_patch [label = "BZ Status:\nPatch in Gerrit"];
+//    bug_resolved [label = "BZ Status:\nResolved/Fixed"];
+
+
+    // Development stages
+    dev [label = "Local development"];
+    dev_labs_instance [label = "Code on developers'\nlab instance"];
+    patch_submission [label = "Patchset in Gerrit"];
+    code_reviews [label = "Code reviews in Gerrit\n(+/-1s, comments)"];
+    unit_tests_precommit [label = "Pre-commit\nunit tests"];
+    manual_testing_presubmit [label = "Manual testing\n(Pre Submit)"];
+    master [label = "Code committed\n in master\n(+2)"];
+    unit_tests_postcommit [label = "Post-commit\nunit tests"];
+
+    beta_cluster [label = "Code on Beta Cluster"];
+    manual_testing_beta [label = "Manual testing\n(Beta Cluster)"];
+    browser_tests_beta [label = "Beta Cluster\nbrowser tests"];
+    review_browsertest_beta [label = "Manual review of \nBeta Cluster\nbrowser tests"];
+    verified_beta_breakage_cond [label = "Verified\nbreakage\nin Beta\nCluster?", shape = flowchart.condition, height = "100"];
+    revert_beta [label = "Revert offending commit"];
+
+    group beta_group {
+        fontsize = "16"
+        label = "Beta Cluster"
+        color = "lightgreen"
+        beta_cluster; manual_testing_beta; browser_tests_beta; review_browsertest_beta; verified_beta_breakage_cond; revert_beta;
+    }
+
+    // Deployment stages
+    create_wmf_branch [label = "WMF deployment branch\n(wmfXX) created"];
+    wmf_deploy_p0 [label = "WMF deployment\nPhase0"];
+    wmf_deploy_p1 [label = "WMF deployment\nPhase1"];
+    wmf_deploy_p2 [label = "WMF deployment\nPhase2"];
+
+    manual_testing_p0 [label = "Manual testing\n(Production Phase0)"];
+    manual_testing_p1 [label = "Manual testing\n(Production Phase1)"];
+    manual_testing_p2 [label = "Manual testing\n(Production Phase2)"];
+    browser_tests_production [label = "Production\nbrowser tests"];
+
+    review_browsertest_prod [label = "Manual review of\nproduction browser tests"];
+    verified_prod_breakage_cond [label = "Verified\nbreakage?", shape = flowchart.condition];
+
+    prod_fix_quick_cond [label = "Fix production quickly?"];
+    fix_prod [label = "Fix production!"];
+    backport_master [label = "Backport fix\nto master"];
+    prod_revert [label = "Revert broken code"];
+
+    success [label = "Success!", color = "green"];
+
+    //
+    // Connections / edges
+    // (Labels use short text only)
+    //
+
+
+    // bug flow
+    bug_reported -> bug_reviewed, bug_languish
+    bug_reviewed -> bug_assigned
+    bug_assigned -> dev
+
+    // dev flow
+    dev -> dev_labs_instance
+    dev_labs_instance -> manual_testing_presubmit
+    manual_testing_presubmit -> patch_submission
+    patch_submission -> bug_patch
+    patch_submission -> unit_tests_precommit [folded]
+    unit_tests_precommit -> code_reviews
+    code_reviews -> master
+    master -> beta_cluster, unit_tests_postcommit
+
+    beta_cluster -> manual_testing_beta, browser_tests_beta
+    browser_tests_beta -> review_browsertest_beta
+    manual_testing_beta, review_browsertest_beta -> verified_beta_breakage_cond
+    verified_beta_breakage_cond -> revert_beta [label = "Yes", textcolor="red"]
+    verified_beta_breakage_cond -> create_wmf_branch [label = "No", textcolor = "green", folded];
+    revert_beta -> report_bug
+
+    create_wmf_branch -> wmf_deploy_p0
+    wmf_deploy_p0 -> manual_testing_p0, wmf_deploy_p1
+    wmf_deploy_p1 -> manual_testing_p1, wmf_deploy_p2
+    wmf_deploy_p2 -> manual_testing_p2
+
+    manual_testing_p0, manual_testing_p1, manual_testing_p2 -> browser_tests_production
+
+    group prod_group {
+        label = "Production"
+        fontsize = "16"
+        color = "lightblue"
+        wmf_deploy_p0; wmf_deploy_p1; wmf_deploy_p2; manual_testing_p0; manual_testing_p1; manual_testing_p2;
+    }
+
+    browser_tests_production -> review_browsertest_prod
+    review_browsertest_prod -> verified_prod_breakage_cond
+
+    verified_prod_breakage_cond -> success [label = "No", textcolor="green", folded]
+    verified_prod_breakage_cond -> prod_fix_quick_cond [label = "Yes", textcolor = "red"];
+    prod_fix_quick_cond -> fix_prod [label = "Yes"]
+    prod_fix_quick_cond -> prod_revert [label = "No"];
+    fix_prod -> backport_master
+    backport_master -> success
+
+    prod_revert -> report_bug
+
+}
