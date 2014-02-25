@@ -1,4 +1,14 @@
+Wikimedia Release Engineering Documentation
+===========================================
+
 This repository collections tools and other bits of source code used by
 the WMF Release Engineering team.
 
 See: https://www.mediawiki.org/wiki/Wikimedia_Release_and_QA_Team
+
+You will need python and tox:
+
+ pip install tox
+
+Then run tox. It will download sphinx under /.tox/ and generate the
+documentation as HTML under /html/
