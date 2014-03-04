@@ -44,12 +44,12 @@ blockdiag {
     sec_bug_report -> sec_dev
     sec_dev -> sec_patch_in_BZ
     sec_patch_in_BZ -> sec_patch_review
-    sec_patch_review -> sec_coord_deploy
+    sec_patch_review -> sec_coord_deploy [folded];
     sec_coord_deploy -> sec_deploy
     sec_deploy -> sec_get_cve
     sec_get_cve -> sec_coord_release
     sec_coord_release -> sec_release
-    sec_release -> sec_merge_master
+    sec_release -> sec_merge_master [folded];
 
     group security_group {
         fontsize = 16
@@ -59,13 +59,18 @@ blockdiag {
     }
 
     // Bug stages
-    report_bug [label = "Report bug"];
     bug_reported [label = "Bug reported"];
     bug_languish [label = "Languish", color = "red"];
     bug_reviewed [label = "Reviewed/\nprioritized"];
     bug_assigned [label = "BZ Status:\nAssigned\n(Optional)"];
     bug_patch [label = "BZ Status:\nPatch in Gerrit"];
-//    bug_resolved [label = "BZ Status:\nResolved/Fixed"];
+
+    group bug_group {
+        fontsize = "16"
+        label = "Bug Tracker"
+        color = "grey"
+        bug_reported; bug_languish; bug_reviewed; bug_assigned;
+    }
 
 
     // Development stages
@@ -78,18 +83,27 @@ blockdiag {
     master [label = "Code committed\n in master\n(+2)"];
     unit_tests_postcommit [label = "Post-commit\nunit tests"];
 
-    beta_cluster [label = "Code on Beta Cluster"];
+    group dev_group {
+        fontsize = "16"
+        label = "Development"
+        color = "aqua"
+        dev; dev_labs_instance; patch_submission; code_reviews; unit_tests_precommit; manual_testing_presubmit; master; unit_tests_postcommit;
+    }
+
+
+    beta_cluster [label = "Beta Cluster\nupdated with\ncode"];
     manual_testing_beta [label = "Manual testing\n(Beta Cluster)"];
     browser_tests_beta [label = "Beta Cluster\nbrowser tests"];
     review_browsertest_beta [label = "Manual review of \nBeta Cluster\nbrowser tests"];
     verified_beta_breakage_cond [label = "Verified\nbreakage\nin Beta\nCluster?", shape = flowchart.condition, height = "100"];
     revert_beta [label = "Revert offending commit"];
+    report_bug_beta [label = "Report bug"];
 
     group beta_group {
         fontsize = "16"
         label = "Beta Cluster"
         color = "lightgreen"
-        beta_cluster; manual_testing_beta; browser_tests_beta; review_browsertest_beta; verified_beta_breakage_cond; revert_beta;
+        beta_cluster; manual_testing_beta; browser_tests_beta; review_browsertest_beta; verified_beta_breakage_cond; revert_beta; report_bug_beta;
     }
 
     // Deployment stages
@@ -106,12 +120,13 @@ blockdiag {
     review_browsertest_prod [label = "Manual review of\nproduction browser tests"];
     verified_prod_breakage_cond [label = "Verified\nbreakage?", shape = flowchart.condition];
 
+    success [label = "Success!", color = "green"];
+
     prod_fix_quick_cond [label = "Fix production quickly?"];
     fix_prod [label = "Fix production!"];
     backport_master [label = "Backport fix\nto master"];
     prod_revert [label = "Revert broken code"];
-
-    success [label = "Success!", color = "green"];
+    report_bug [label = "Report bug"];
 
     //
     // Connections / edges
@@ -122,7 +137,7 @@ blockdiag {
     // bug flow
     bug_reported -> bug_reviewed, bug_languish
     bug_reviewed -> bug_assigned
-    bug_assigned -> dev
+    bug_assigned -> dev [folded];
 
     // dev flow
     dev -> dev_labs_instance
@@ -132,16 +147,18 @@ blockdiag {
     patch_submission -> unit_tests_precommit [folded]
     unit_tests_precommit -> code_reviews
     code_reviews -> master
-    master -> beta_cluster, unit_tests_postcommit
+    master -> unit_tests_postcommit
+    master -> beta_cluster [folded];
 
-    beta_cluster -> manual_testing_beta, browser_tests_beta
+    beta_cluster -> browser_tests_beta
+    beta_cluster -> manual_testing_beta [folded];
     browser_tests_beta -> review_browsertest_beta
     manual_testing_beta, review_browsertest_beta -> verified_beta_breakage_cond
     verified_beta_breakage_cond -> revert_beta [label = "Yes", textcolor="red"]
     verified_beta_breakage_cond -> create_wmf_branch [label = "No", textcolor = "green", folded];
-    revert_beta -> report_bug
+    revert_beta -> report_bug_beta
 
-    create_wmf_branch -> wmf_deploy_p0
+    create_wmf_branch -> wmf_deploy_p0 [folded];
     wmf_deploy_p0 -> manual_testing_p0, wmf_deploy_p1
     wmf_deploy_p1 -> manual_testing_p1, wmf_deploy_p2
     wmf_deploy_p2 -> manual_testing_p2
@@ -152,18 +169,19 @@ blockdiag {
         label = "Production"
         fontsize = "16"
         color = "lightblue"
-        wmf_deploy_p0; wmf_deploy_p1; wmf_deploy_p2; manual_testing_p0; manual_testing_p1; manual_testing_p2;
+        wmf_deploy_p0; wmf_deploy_p1; wmf_deploy_p2; manual_testing_p0; manual_testing_p1; manual_testing_p2; browser_tests_production; review_browsertest_prod; verified_prod_breakage_cond; backport_master; prod_fix_quick_cond; fix_prod; prod_revert; backport_master;
     }
 
-    browser_tests_production -> review_browsertest_prod
+    browser_tests_production -> review_browsertest_prod [folded];
     review_browsertest_prod -> verified_prod_breakage_cond
 
     verified_prod_breakage_cond -> success [label = "No", textcolor="green", folded]
+    backport_master -> success
     verified_prod_breakage_cond -> prod_fix_quick_cond [label = "Yes", textcolor = "red"];
     prod_fix_quick_cond -> fix_prod [label = "Yes"]
     prod_fix_quick_cond -> prod_revert [label = "No"];
     fix_prod -> backport_master
-    backport_master -> success
+
 
     prod_revert -> report_bug
 
