@@ -46,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Wikimedia Release Engineering Documentation'
-copyright = u'2014, Platform'
+copyright = u'2014, Wikimedia Foundation & contributors. Licensed under CC0.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

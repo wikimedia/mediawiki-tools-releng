@@ -13,6 +13,8 @@ Contents:
 
    devdeployflow/index.rst
 
+:download:`Licensed under CC0 <../LICENSE>`.
+
 Indices and tables
 ==================
 
