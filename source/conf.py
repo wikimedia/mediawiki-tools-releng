@@ -30,6 +30,7 @@ import os
 # ones.
 extensions = [
     'sphinxcontrib.blockdiag',
+    'sphinxcontrib.seqdiag',
     ]
 
 # Add any paths that contain templates here, relative to this directory.

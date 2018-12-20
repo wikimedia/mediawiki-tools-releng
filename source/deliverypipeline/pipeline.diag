@@ -1,0 +1,44 @@
+seqdiag {
+  dev [label="Developer"];
+  rev [label="Reviewer"];
+  releng [label="RelEngineer"];
+  Gerrit;
+  CI [label="Zuul+Jenkins"];
+  staging;
+  prod;
+  image_store;
+
+  === CI tests change ===
+  dev => Gerrit [label="push change for review", return="merge notification"] {
+      Gerrit => CI [label="trigger image build job", return="vote Verified+2"] {
+          CI => CI [label="build and test software locally"];
+          CI => image_store [label="publish Docker images"];
+      }
+  }
+
+  === Reviewer reviews source change (diff) ===
+
+  Gerrit => rev [label="notify of need for review", return="vote Code-Review+2"] {
+      rev => rev [label="review and ponder on change"];
+  }
+
+  === RelEng deploys to staging ===
+  Gerrit => releng [label="notify of change being ready for deployment", return="vote +2 for production FIXME"] {
+      releng => CI [label="trigger deployment to staging"] {
+          CI => staging [label="deploy"] {
+              staging => image_store [label="fetch image"];
+          }
+      }
+      releng => staging [label="look for problems (logspam etc)"];
+  }
+
+  === RelEng deploys to production ===
+  Gerrit => releng [label="notify of change ready to be deployed"] {
+      releng => CI [label="trigger deployment to production"] {
+          CI => prod [label="deploy"] {
+              prod => image_store [label="fetch image"];
+          }
+      }
+      releng => prod [label="look for problems (logspam etc)"];
+  }
+}

@@ -11,6 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   deliverypipeline/index.rst
    devdeployflow/index.rst
 
 :download:`Licensed under CC0 <../LICENSE>`.
