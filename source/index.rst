@@ -11,6 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   ci-arch/index.rst
    deliverypipeline/index.rst
    devdeployflow/index.rst
 

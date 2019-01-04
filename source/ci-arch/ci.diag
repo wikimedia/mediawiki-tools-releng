@@ -1,0 +1,6 @@
+blockdiag CI {
+    orientation=portrait;
+    dev -> Gerrit <-> Scheduler -> Gearman;
+    Gearman <-> Merger <-> GIT;
+    Gearman -> Jenkins <-> worker <-> GIT;
+}
